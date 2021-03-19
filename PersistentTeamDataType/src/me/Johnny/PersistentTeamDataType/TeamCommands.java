@@ -8,11 +8,15 @@ import java.util.List;
 import net.md_5.bungee.api.ChatColor;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -36,13 +40,19 @@ public class TeamCommands implements CommandExecutor {
 			
 			// Initialization and housekeeping stuff
 			HashMap<String, Integer> map = new HashMap<>();
-			map.put("BLUE", 0);
-			map.put("RED", 1);
-			map.put("NEUTRAL", 2);
+			map.put("GERUDO", 0);
+			map.put("RITO", 1);
+			map.put("KOROK", 2);
+			map.put("GORON", 3);
+			map.put("ZORA", 4);
+			map.put("NEUTRAL", 5);
 			
 			List<ChatColor> cc = new ArrayList<ChatColor>();
-			cc.add(ChatColor.BLUE);
+			cc.add(ChatColor.YELLOW);
+			cc.add(ChatColor.AQUA);
+			cc.add(ChatColor.GREEN);
 			cc.add(ChatColor.RED);
+			cc.add(ChatColor.BLUE);
 			cc.add(ChatColor.WHITE);
 			
 			Events e = new Events();
@@ -69,16 +79,58 @@ public class TeamCommands implements CommandExecutor {
 			if (label.equalsIgnoreCase("assign")) {
 				if (args.length > 0) {
 					// JOIN THE BLUE TEAM
-					if (args[0].equalsIgnoreCase("blue")) {
-						teamAssignment(player, ChatColor.BLUE, TeamType.BLUE);
-						e.createScoreboard(player, "BLUE");
+					if (args[0].equalsIgnoreCase("gerudo")) {
+						teamAssignment(player, ChatColor.YELLOW, TeamType.GERUDO);
+						e.createScoreboard(player, "GERUDO");
 //						createScoreboard(player, "BLUE");
 					}
 					// JOIN THE RED TEAM
-					else if (args[0].equalsIgnoreCase("red")) {
-						teamAssignment(player, ChatColor.RED, TeamType.RED);
-						e.createScoreboard(player, "RED");
+					else if (args[0].equalsIgnoreCase("rito")) {
+						teamAssignment(player, ChatColor.AQUA, TeamType.RITO);
+						e.createScoreboard(player, "RITO");
+						ScoreboardManager manager = Bukkit.getScoreboardManager();
+						Scoreboard board = manager.getNewScoreboard();
+						Bukkit.broadcastMessage(ChatColor.GREEN + "[Server]" + ChatColor.GOLD + "YOU SWITCHED TEAMS!");
+						ItemStack elytra= new ItemStack(Material.ELYTRA);
+						ItemMeta meta = elytra.getItemMeta();
+						meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+						meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
+						meta.setUnbreakable(true);
+						elytra.setItemMeta(meta);
+						player.getInventory().setChestplate(elytra);
+						player.sendMessage("SUCCESS!");
+//						Player player = event.getPlayer();
+//						if (board.getPlayerTeam(player).equals("RITO")) {
+//							ItemStack elytra= new ItemStack(Material.ELYTRA);
+//							ItemMeta meta = elytra.getItemMeta();
+//							meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+//							meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
+//							meta.setUnbreakable(true);
+//							player.getInventory().setChestplate(elytra);
+//							player.sendMessage("SUCCESS!");
+//						}
+//						else {
+//							player.sendMessage("NOPE");
+//						}
 //						createScoreboard(player, "RED");
+					}
+					// JOIN THE NEUTRAL TEAM
+					else if (args[0].equalsIgnoreCase("korok")) {
+						teamAssignment(player, ChatColor.GREEN, TeamType.KOROK);
+						e.createScoreboard(player, "KOROK");
+//						createScoreboard(player, "NEUTRAL");
+					}
+					// JOIN THE NEUTRAL TEAM
+					else if (args[0].equalsIgnoreCase("goron")) {
+						teamAssignment(player, ChatColor.RED, TeamType.GORON);
+						e.createScoreboard(player, "GORON");
+//						createScoreboard(player, "NEUTRAL");
+					}
+					// JOIN THE NEUTRAL TEAM
+					else if (args[0].equalsIgnoreCase("zora")) {
+						teamAssignment(player, ChatColor.BLUE, TeamType.ZORA);
+						e.createScoreboard(player, "ZORA");
+//						createScoreboard(player, "NEUTRAL");
 					}
 					// JOIN THE NEUTRAL TEAM
 					else if (args[0].equalsIgnoreCase("neutral")) {
