@@ -1,5 +1,7 @@
 package me.Johnny.PersistentTeamDataType.Events;
 
+import java.util.HashMap;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -9,14 +11,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -25,7 +23,6 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
 import me.Johnny.PersistentTeamDataType.Main;
-import me.Johnny.PersistentTeamDataType.SkinGrabber;
 import me.Johnny.PersistentTeamDataType.TeamDataType;
 import me.Johnny.PersistentTeamDataType.Models.TeamType;
 
@@ -36,12 +33,9 @@ public class Events implements Listener {
 		//Grab player
 		Player player = event.getPlayer();
 		
-		// Create score board for player
-		
-		
 		NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
 		
-		// When player joins, the "team" that they default to is neutral
+		// When player joins for the 1st time, the "team" that they default to is neutral
 		if (!player.getPersistentDataContainer().has(key, new TeamDataType())) {
 			player.getPersistentDataContainer().set(key, new TeamDataType(), TeamType.NEUTRAL);
 		}
@@ -53,62 +47,6 @@ public class Events implements Listener {
 		 * reflects their team type => createScoreboard(Player player, String team)
 		 * */
 		
-		if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.GERUDO)) {
-			player.sendMessage(ChatColor.YELLOW + "Violets are blue...");
-			//CHANGE CHARACTER SKIN
-			
-//			SkinGrabber.changeSkin(player, "YELLOW");
-			
-//			createScoreboard(player, "BLUE");
-		}
-		else if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.RITO)) {
-			player.sendMessage(ChatColor.AQUA + "RITO RACE");
-			//CHANGE CHARACTER SKIN
-//			SkinGrabber.changeSkin(player, "RED");
-			
-//			ItemStack elytra= new ItemStack(Material.ELYTRA);
-//			ItemMeta meta = elytra.getItemMeta();
-//			meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
-//			meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
-//			meta.setUnbreakable(true);
-//			player.getInventory().setChestplate(elytra);
-			
-			
-			
-//			player.getInventory().setChestplate(new ItemStack(Material.ELYTRA));
-//			createScoreboard(player, "RED");
-		}
-		else if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.KOROK)) {
-			player.sendMessage(ChatColor.GREEN + "KOROK RACE");
-			//CHANGE CHARACTER SKIN
-//			SkinGrabber.changeSkin(player, "RED");
-//			createScoreboard(player, "RED");
-		}
-		else if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.GORON)) {
-			player.sendMessage(ChatColor.RED + "GORON RACE");
-			//CHANGE CHARACTER SKIN
-//			SkinGrabber.changeSkin(player, "RED");
-//			createScoreboard(player, "RED");
-		}
-		
-		else if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.ZORA)) {
-			player.sendMessage(ChatColor.BLUE + "ZORA RACE");
-			//CHANGE CHARACTER SKIN
-			SkinGrabber.changeSkin(player, "WHITE");
-//			createScoreboard(player, "NEUTRAL");
-		}
-		else if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.NEUTRAL)) {
-			player.sendMessage(ChatColor.WHITE + "Stuck in the middle...");
-			//CHANGE CHARACTER SKIN
-			SkinGrabber.changeSkin(player, "WHITE");
-//			createScoreboard(player, "NEUTRAL");
-		}
-		
-		else {
-			player.sendMessage("Don't know why you're here. You should have defaulted to a NEUTRAL TEAM");
-		}
-		
-		
 		// Create a scoreboard for each player based on their team type
 		for (Player p: Bukkit.getServer().getOnlinePlayers()) {
 			String teamColor = p.getPersistentDataContainer().get(key, new TeamDataType()).toString();
@@ -117,10 +55,9 @@ public class Events implements Listener {
 		
 	}
 	
+	/*---------------------- Gerudo ---------------------------*/
 	
-	/*Gerudo -------------------------------------------------*/
-	
-	/*Rito -------------------------------------------------*/
+	/*----------------------- Rito --------------------------*/
 	
 	@EventHandler
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
@@ -149,7 +86,8 @@ public class Events implements Listener {
 
 	}
 	
-	/*Korok -------------------------------------------------*/
+	/*---------------------- Korok ---------------------------*/
+	// Abilities: Invisibility and not collidable when crouching
 	
 	@EventHandler
 	public void onCrouch(PlayerToggleSneakEvent event) {
@@ -161,26 +99,17 @@ public class Events implements Listener {
 			player.setInvisible(!player.isSneaking());
 			player.setCollidable(player.isSneaking());
 		}
-		
-//		if (player.isSneaking()) {
-//			player.setInvisible(isEnabled());
-////			player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 20, 50, false, false));
-//		}
-//		if (player.isSprinting()) {
-//			player.setWalkSpeed(1);
-//			player.sendMessage(ChatColor.BLUE + "I AM SPEED");
-//		}
-//		else {
-//			player.setWalkSpeed((float) 0.2);
-//		}
 	}
 	
-	/*Goron -------------------------------------------------*/
+	/*----------------------- Goron --------------------------*/
 	
-	/*Zora -------------------------------------------------*/
+	/*----------------------- Zora ---------------------------*/
 	
-	/*-------------------------------------------------*/
+	/*----------------------- Neutral --------------------------*/
 	
+	// HELPER FUNCTIONS
+	
+	@SuppressWarnings("deprecation")
 	public void createScoreboard(Player player, String displayName) {
 		ScoreboardManager manager = Bukkit.getScoreboardManager();
 		Scoreboard board = manager.getNewScoreboard();
@@ -194,7 +123,6 @@ public class Events implements Listener {
 		Team zora = board.registerNewTeam("ZORA");
 		Team neutral = board.registerNewTeam("NEUTRAL");
 		
-		
 		gerudo.setPrefix(ChatColor.YELLOW + "[GERUDO]" + ChatColor.WHITE);
 		rito.setPrefix(ChatColor.AQUA+ "[RITO]" + ChatColor.WHITE);
 		korok.setPrefix(ChatColor.GREEN+ "[KOROK]" + ChatColor.WHITE);
@@ -207,42 +135,43 @@ public class Events implements Listener {
 		
 		player.setScoreboard(board);
 		
-		if (displayName.equalsIgnoreCase("GERUDO")) {
-			objective.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + displayName);
-			gerudo.addPlayer(player);
-//			SkinGrabber.changeSkin(player, "BLUE");
-		}	
-		else if (displayName.equalsIgnoreCase("RITO")) {
-			objective.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + displayName);
-			rito.addPlayer(player);
-//			SkinGrabber.changeSkin(player, "RED");
-		}
-		else if (displayName.equalsIgnoreCase("KOROK")) {
-			objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + displayName);
-			korok.addPlayer(player);
-//			SkinGrabber.changeSkin(player, "RED");
-		}
-		else if (displayName.equalsIgnoreCase("GORON")) {
-			objective.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + displayName);
-			goron.addPlayer(player);
-//			SkinGrabber.changeSkin(player, "RED");
-		}
-		else if (displayName.equalsIgnoreCase("ZORA")) {
-			objective.setDisplayName(ChatColor.BLUE + "" + ChatColor.BOLD + displayName);
-			zora.addPlayer(player);
-//			SkinGrabber.changeSkin(player, "NEUTRAL");
-		}
-		else if (displayName.equalsIgnoreCase("NEUTRAL")) {
-			objective.setDisplayName(ChatColor.WHITE + "" + ChatColor.BOLD + displayName);
-			neutral.addPlayer(player);
-//			SkinGrabber.changeSkin(player, "NEUTRAL");
-		}
+		HashMap<String, ChatColor> zelda_color_map = new HashMap<String, ChatColor>();
+		zelda_color_map.put("GERUDO", ChatColor.YELLOW);
+		zelda_color_map.put("RITO", ChatColor.AQUA);
+		zelda_color_map.put("KOROK", ChatColor.GREEN);
+		zelda_color_map.put("GORON", ChatColor.RED);
+		zelda_color_map.put("ZORA", ChatColor.BLUE);
+		zelda_color_map.put("NEUTRAL", ChatColor.WHITE);
 		
+		objective.setDisplayName(zelda_color_map.get(displayName) + "" + ChatColor.BOLD + displayName);
 		
-	}
-	
-	public void onPlayerSprint(PlayerMoveEvent event) {
-		Player player = event.getPlayer();
+		board.getTeam(displayName).addPlayer(player);
+		
+//		if (displayName.equalsIgnoreCase("GERUDO")) {
+//			objective.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + displayName);
+//			gerudo.addPlayer(player);
+//		}	
+//		else if (displayName.equalsIgnoreCase("RITO")) {
+//			objective.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + displayName);
+//			rito.addPlayer(player);
+//		}
+//		else if (displayName.equalsIgnoreCase("KOROK")) {
+//			objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + displayName);
+//			korok.addPlayer(player);
+//		}
+//		else if (displayName.equalsIgnoreCase("GORON")) {
+//			objective.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + displayName);
+//			goron.addPlayer(player);
+//		}
+//		else if (displayName.equalsIgnoreCase("ZORA")) {
+//			objective.setDisplayName(ChatColor.BLUE + "" + ChatColor.BOLD + displayName);
+//			zora.addPlayer(player);
+//		}
+//		else if (displayName.equalsIgnoreCase("NEUTRAL")) {
+//			objective.setDisplayName(ChatColor.WHITE + "" + ChatColor.BOLD + displayName);
+//			neutral.addPlayer(player);
+//		}
+		
 		
 	}
 }

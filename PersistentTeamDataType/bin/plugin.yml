@@ -13,3 +13,4 @@ commands:
     description: Checks what team the player is currently on
     usage: /<command>
   teams:
+  squad:

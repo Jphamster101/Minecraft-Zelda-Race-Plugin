@@ -17,7 +17,6 @@ public class Main extends JavaPlugin {
 	public void onEnable() {
 		//Links Events.class to this Main file
 		getServer().getPluginManager().registerEvents(new Events(), this);
-		
 		plugin = this;
 		
 		TeamCommands tc = new TeamCommands();
@@ -25,6 +24,7 @@ public class Main extends JavaPlugin {
 		getCommand("assign").setExecutor(tc);
 		getCommand("whichteam").setExecutor(tc);
 		getCommand("teams").setExecutor(tc);
+		getCommand("squad").setExecutor(tc);
 	}
 	
 	@Override

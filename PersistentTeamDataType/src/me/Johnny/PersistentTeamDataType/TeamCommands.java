@@ -18,11 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
 import me.Johnny.PersistentTeamDataType.Events.Events;
@@ -75,21 +71,38 @@ public class TeamCommands implements CommandExecutor {
 				}
 			}
 			
+			if (label.equalsIgnoreCase("squad")) {
+				NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
+				String teamOfPlayer = player.getPersistentDataContainer().get(key, new TeamDataType()).toString();
+				List<String> team_members = new ArrayList<String>();
+				for (Player p : Bukkit.getOnlinePlayers()) {
+					if (p.getPersistentDataContainer().get(key, new TeamDataType()).toString().equals(teamOfPlayer)) {
+						team_members.add(p.getDisplayName());
+					}
+				}
+				player.sendMessage(cc.get(map.get(teamOfPlayer)) +  "" + ChatColor.BOLD + teamOfPlayer + " members:");
+				player.sendMessage(ChatColor.WHITE + "" + team_members);
+			}
+			
+			
 			// Team assignment code
 			if (label.equalsIgnoreCase("assign")) {
+				
+				clearChestPlate(player);
+				
 				if (args.length > 0) {
-					// JOIN THE BLUE TEAM
+					// JOIN THE GERUDO TEAM
 					if (args[0].equalsIgnoreCase("gerudo")) {
 						teamAssignment(player, ChatColor.YELLOW, TeamType.GERUDO);
 						e.createScoreboard(player, "GERUDO");
-//						createScoreboard(player, "BLUE");
+						return true;
 					}
-					// JOIN THE RED TEAM
+					// JOIN THE RITO TEAM
 					else if (args[0].equalsIgnoreCase("rito")) {
 						teamAssignment(player, ChatColor.AQUA, TeamType.RITO);
 						e.createScoreboard(player, "RITO");
-						ScoreboardManager manager = Bukkit.getScoreboardManager();
-						Scoreboard board = manager.getNewScoreboard();
+//						ScoreboardManager manager = Bukkit.getScoreboardManager();
+//						Scoreboard board = manager.getNewScoreboard();
 						Bukkit.broadcastMessage(ChatColor.GREEN + "[Server]" + ChatColor.GOLD + "YOU SWITCHED TEAMS!");
 						ItemStack elytra= new ItemStack(Material.ELYTRA);
 						ItemMeta meta = elytra.getItemMeta();
@@ -98,45 +111,32 @@ public class TeamCommands implements CommandExecutor {
 						meta.setUnbreakable(true);
 						elytra.setItemMeta(meta);
 						player.getInventory().setChestplate(elytra);
-						player.sendMessage("SUCCESS!");
-//						Player player = event.getPlayer();
-//						if (board.getPlayerTeam(player).equals("RITO")) {
-//							ItemStack elytra= new ItemStack(Material.ELYTRA);
-//							ItemMeta meta = elytra.getItemMeta();
-//							meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
-//							meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
-//							meta.setUnbreakable(true);
-//							player.getInventory().setChestplate(elytra);
-//							player.sendMessage("SUCCESS!");
-//						}
-//						else {
-//							player.sendMessage("NOPE");
-//						}
-//						createScoreboard(player, "RED");
+						player.sendMessage("WINGS GIVEN!");
+						return true;
 					}
-					// JOIN THE NEUTRAL TEAM
+					// JOIN THE KOROK TEAM
 					else if (args[0].equalsIgnoreCase("korok")) {
 						teamAssignment(player, ChatColor.GREEN, TeamType.KOROK);
 						e.createScoreboard(player, "KOROK");
-//						createScoreboard(player, "NEUTRAL");
+						return true;
 					}
-					// JOIN THE NEUTRAL TEAM
+					// JOIN THE GORON TEAM
 					else if (args[0].equalsIgnoreCase("goron")) {
 						teamAssignment(player, ChatColor.RED, TeamType.GORON);
 						e.createScoreboard(player, "GORON");
-//						createScoreboard(player, "NEUTRAL");
+						return true;
 					}
-					// JOIN THE NEUTRAL TEAM
+					// JOIN THE ZORA TEAM
 					else if (args[0].equalsIgnoreCase("zora")) {
 						teamAssignment(player, ChatColor.BLUE, TeamType.ZORA);
 						e.createScoreboard(player, "ZORA");
-//						createScoreboard(player, "NEUTRAL");
+						return true;
 					}
 					// JOIN THE NEUTRAL TEAM
 					else if (args[0].equalsIgnoreCase("neutral")) {
 						teamAssignment(player, ChatColor.WHITE, TeamType.NEUTRAL);
 						e.createScoreboard(player, "NEUTRAL");
-//						createScoreboard(player, "NEUTRAL");
+						return true;
 					}
 					else {
 						player.sendMessage(ChatColor.WHITE + args[0] + " is an invalid team name...");
@@ -148,12 +148,19 @@ public class TeamCommands implements CommandExecutor {
 					return true;
 				}
 			}
+			
 			// Command that allows user to check what team they are on
 			if (label.equalsIgnoreCase("whichteam")) {
-				PersistentDataContainer data = player.getPersistentDataContainer();
-				NamespacedKey keyValue = new NamespacedKey(Main.getPlugin(), "teamType");
-				String team = data.get(keyValue, new TeamDataType()).toString();
-				player.sendMessage(ChatColor.GRAY + "You are on the : " + cc.get(map.get(team)) + ChatColor.BOLD + data.get(keyValue, new TeamDataType()) + ChatColor.WHITE +" team!");
+				if (args.length == 0) {
+					PersistentDataContainer data = player.getPersistentDataContainer();
+					NamespacedKey keyValue = new NamespacedKey(Main.getPlugin(), "teamType");
+					String team = data.get(keyValue, new TeamDataType()).toString();
+					player.sendMessage(ChatColor.GRAY + "You are on the : " + cc.get(map.get(team)) + ChatColor.BOLD + data.get(keyValue, new TeamDataType()) + ChatColor.WHITE +" team!");
+					return true;
+				}
+				else {
+					checkTeam(player, args[0]);
+				}
 			}
 		}
 		return false;
@@ -166,40 +173,44 @@ public class TeamCommands implements CommandExecutor {
 			data.set(key, new TeamDataType(), team);
 			player.sendMessage(ChatColor.GRAY + "You are now on the : " + color + ChatColor.BOLD + data.get(new NamespacedKey(Main.getPlugin(), "teamType"), new TeamDataType()) + ChatColor.RESET + " team!");
 		}
-		else {
-			player.sendMessage(ChatColor.GREEN + "Uh oh");
+	}
+	
+	public void clearChestPlate(Player player) {
+		ItemStack nothing = new ItemStack(Material.AIR);
+		player.getInventory().setChestplate(nothing);
+	}
+	
+	public void checkTeam(Player you, String playerInQ) {
+		// Initialization and housekeeping stuff
+		HashMap<String, Integer> map = new HashMap<>();
+		map.put("GERUDO", 0);
+		map.put("RITO", 1);
+		map.put("KOROK", 2);
+		map.put("GORON", 3);
+		map.put("ZORA", 4);
+		map.put("NEUTRAL", 5);
+		
+		List<ChatColor> cc = new ArrayList<ChatColor>();
+		cc.add(ChatColor.YELLOW);
+		cc.add(ChatColor.AQUA);
+		cc.add(ChatColor.GREEN);
+		cc.add(ChatColor.RED);
+		cc.add(ChatColor.BLUE);
+		cc.add(ChatColor.WHITE);
+		
+		NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
+		
+		for (Player p : Bukkit.getOnlinePlayers()) {
+			if (p.getDisplayName().equals(playerInQ)) {
+				String teamOfPlayer = p.getPersistentDataContainer().get(key, new TeamDataType()).toString();
+				you.sendMessage(ChatColor.WHITE + p.getDisplayName() + " is on Team " + cc.get(map.get(teamOfPlayer)) + ChatColor.BOLD + teamOfPlayer);
+			}
 		}
 	}
 	
-//	public void updateTeamNameScoreboard(Player player, String displayName) {
-//		ScoreboardManager manager = Bukkit.getScoreboardManager();
-//		Scoreboard board = manager.getNewScoreboard();
-//		Objective objective = board.registerNewObjective("NAME", "dummy");
-//		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-//		
-//		Team red = board.registerNewTeam("RED");
-//		Team blue = board.registerNewTeam("BLUE");
-//		Team neutral= board.registerNewTeam("NEUTRAL");
-//		
-//		red.setPrefix(ChatColor.RED + "[RED] " + ChatColor.WHITE);
-//		blue.setPrefix(ChatColor.BLUE+ "[BLUE] " + ChatColor.WHITE);
-//		neutral.setPrefix(ChatColor.WHITE+ "[NEUTRAL] " + ChatColor.WHITE);
-//		
-//		Score score = objective.getScore("Players:");
-//		score.setScore(Bukkit.getOnlinePlayers().size());
-//		player.setScoreboard(board);
-//		
-//		if (displayName.equalsIgnoreCase("blue")) {
-//			objective.setDisplayName(ChatColor.BLUE + "AZUL");
-//			blue.addPlayer(player);
-//		}
-//		else if (displayName.equalsIgnoreCase("red")) {
-//			objective.setDisplayName(ChatColor.RED + displayName.toUpperCase());
-//			red.addPlayer(player);
-//		}
-//		else if (displayName.equalsIgnoreCase("neutral")) {
-//			objective.setDisplayName(ChatColor.WHITE + displayName.toUpperCase());
-//			neutral.addPlayer(player);
-//		}
+	
+//	public Set<Team> holmes(Scoreboard board) {
+//		return board.getTeam(null;)
 //	}
+	
 }
