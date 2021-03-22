@@ -20,11 +20,14 @@ public class Main extends JavaPlugin {
 		plugin = this;
 		
 		TeamCommands tc = new TeamCommands();
+		TabAutoComplete tac = new TabAutoComplete();
 		getCommand("test").setExecutor(tc);
 		getCommand("assign").setExecutor(tc);
+		getCommand("assign").setTabCompleter(tac);
 		getCommand("whichteam").setExecutor(tc);
 		getCommand("teams").setExecutor(tc);
 		getCommand("squad").setExecutor(tc);
+		getCommand("sb").setExecutor(tc);
 	}
 	
 	@Override

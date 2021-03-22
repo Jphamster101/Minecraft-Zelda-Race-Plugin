@@ -1,9 +1,12 @@
 package me.Johnny.PersistentTeamDataType.Events;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+//import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -23,21 +26,43 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
 import me.Johnny.PersistentTeamDataType.Main;
+import me.Johnny.PersistentTeamDataType.TeamCommands;
 import me.Johnny.PersistentTeamDataType.TeamDataType;
 import me.Johnny.PersistentTeamDataType.Models.TeamType;
 
 public class Events implements Listener {
 	
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		//Grab player
 		Player player = event.getPlayer();
+		
+//		 Initialization and housekeeping stuff
+		HashMap<String, Integer> map = new HashMap<>();
+		map.put("GERUDO", 0);
+		map.put("RITO", 1);
+		map.put("KOROK", 2);
+		map.put("GORON", 3);
+		map.put("ZORA", 4);
+		map.put("NEUTRAL", 5);
+		
+		List<ChatColor> cc = new ArrayList<ChatColor>();
+		cc.add(ChatColor.YELLOW);
+		cc.add(ChatColor.AQUA);
+		cc.add(ChatColor.GREEN);
+		cc.add(ChatColor.RED);
+		cc.add(ChatColor.BLUE);
+		cc.add(ChatColor.WHITE);
 		
 		NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
 		
 		// When player joins for the 1st time, the "team" that they default to is neutral
 		if (!player.getPersistentDataContainer().has(key, new TeamDataType())) {
 			player.getPersistentDataContainer().set(key, new TeamDataType(), TeamType.NEUTRAL);
+			player.sendMessage(ChatColor.BOLD + "Welcome " + player.getDisplayName() + "!");
+			player.sendMessage(ChatColor.BOLD + "You are currently not on a team. But you can join one of the teams below:");
+			new TeamCommands().showTeams(map, cc, player);
 		}
 		
 		/* How this team assignment code works
@@ -47,12 +72,28 @@ public class Events implements Listener {
 		 * reflects their team type => createScoreboard(Player player, String team)
 		 * */
 		
-		// Create a scoreboard for each player based on their team type
-		for (Player p: Bukkit.getServer().getOnlinePlayers()) {
-			String teamColor = p.getPersistentDataContainer().get(key, new TeamDataType()).toString();
-			createScoreboard(p, teamColor);
+		//Take into account all players and put them into their respective teams using the board variable	
+		// At this point board should have all the teams and members in their respective teams
+		
+		int counter = 0;
+		// Create a scoreboard for each player with data from 'board'. Objective should be unique to each player
+		for (Player dude: Bukkit.getOnlinePlayers()) {
+			counter++;
+			Bukkit.broadcastMessage(ChatColor.WHITE + "" + counter + " iteration(s)");
+			String teamOfPlayer = dude.getPersistentDataContainer().get(key, new TeamDataType()).toString();
+			createScoreboard(dude, teamOfPlayer);
 		}
 		
+		// Create a scoreboard for each player based on their team type
+//		for (Player p: Bukkit.getServer().getOnlinePlayers()) {
+//			String teamName = player.getPersistentDataContainer().get(key, new TeamDataType()).toString();
+//			Bukkit.broadcastMessage(player.getDisplayName());
+//			objective.setDisplayName(teamName);
+			
+//			createScoreboard(player, teamName, board);
+//			player.setScoreboard(board);
+//			Bukkit.broadcastMessage(teamColor);
+//		}
 	}
 	
 	/*---------------------- Gerudo ---------------------------*/
@@ -67,22 +108,21 @@ public class Events implements Listener {
 		NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
 		for (Player p: Bukkit.getServer().getOnlinePlayers()) {
 			String teamColor = p.getPersistentDataContainer().get(key, new TeamDataType()).toString();
-			if (teamColor.equals("RITO")) {
-					
-					try {
-						p.getInventory().getChestplate().equals(new ItemStack(Material.ELYTRA));
-					} catch (Exception e) {
-						ItemStack elytra= new ItemStack(Material.ELYTRA);
-						ItemMeta meta = elytra.getItemMeta();
-						meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
-						meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
-						meta.setUnbreakable(true);
-						elytra.setItemMeta(meta);
-						p.getInventory().setChestplate(elytra);
-					}
+				if (teamColor.equals("RITO")) {
+						
+						try {
+							p.getInventory().getChestplate().equals(new ItemStack(Material.ELYTRA));
+						} catch (Exception e) {
+							ItemStack elytra= new ItemStack(Material.ELYTRA);
+							ItemMeta meta = elytra.getItemMeta();
+							meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+							meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
+							elytra.setItemMeta(meta);
+							p.getInventory().setChestplate(elytra);
+						}
+				}
 			}
-		}
-	}, 20L);
+		}, 20L);
 
 	}
 	
@@ -111,17 +151,22 @@ public class Events implements Listener {
 	
 	@SuppressWarnings("deprecation")
 	public void createScoreboard(Player player, String displayName) {
-		ScoreboardManager manager = Bukkit.getScoreboardManager();
-		Scoreboard board = manager.getNewScoreboard();
-		Objective objective = board.registerNewObjective("NAME", "dummy");
-		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 		
-		Team gerudo = board.registerNewTeam("GERUDO");
-		Team rito = board.registerNewTeam("RITO");
-		Team korok = board.registerNewTeam("KOROK");
-		Team goron = board.registerNewTeam("GORON");
-		Team zora = board.registerNewTeam("ZORA");
-		Team neutral = board.registerNewTeam("NEUTRAL");
+		// Create a separate scoreboard from the above completed
+		// Add the same teams and add the same players to each team
+		// Assign that specific scoreboard with the unique objective to that player
+		
+		ScoreboardManager mngr = Bukkit.getScoreboardManager();
+		Scoreboard f_board = mngr.getNewScoreboard();
+		
+		Team gerudo = f_board.registerNewTeam("GERUDO");
+		Team rito = f_board.registerNewTeam("RITO");
+		Team korok = f_board.registerNewTeam("KOROK");
+		Team goron = f_board.registerNewTeam("GORON");
+		Team zora = f_board.registerNewTeam("ZORA");
+		Team neutral = f_board.registerNewTeam("NEUTRAL");
+		Objective objective = f_board.registerNewObjective("RACE", "dummy");
+		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 		
 		gerudo.setPrefix(ChatColor.YELLOW + "[GERUDO]" + ChatColor.WHITE);
 		rito.setPrefix(ChatColor.AQUA+ "[RITO]" + ChatColor.WHITE);
@@ -133,45 +178,54 @@ public class Events implements Listener {
 		Score score = objective.getScore("Players:");
 		score.setScore(Bukkit.getOnlinePlayers().size());
 		
-		player.setScoreboard(board);
+//		 Initialization and housekeeping stuff
+		HashMap<String, Integer> map = new HashMap<>();
+		map.put("GERUDO", 0);
+		map.put("RITO", 1);
+		map.put("KOROK", 2);
+		map.put("GORON", 3);
+		map.put("ZORA", 4);
+		map.put("NEUTRAL", 5);
 		
-		HashMap<String, ChatColor> zelda_color_map = new HashMap<String, ChatColor>();
-		zelda_color_map.put("GERUDO", ChatColor.YELLOW);
-		zelda_color_map.put("RITO", ChatColor.AQUA);
-		zelda_color_map.put("KOROK", ChatColor.GREEN);
-		zelda_color_map.put("GORON", ChatColor.RED);
-		zelda_color_map.put("ZORA", ChatColor.BLUE);
-		zelda_color_map.put("NEUTRAL", ChatColor.WHITE);
+		List<ChatColor> cc = new ArrayList<ChatColor>();
+		cc.add(ChatColor.YELLOW);
+		cc.add(ChatColor.AQUA);
+		cc.add(ChatColor.GREEN);
+		cc.add(ChatColor.RED);
+		cc.add(ChatColor.BLUE);
+		cc.add(ChatColor.WHITE);
 		
-		objective.setDisplayName(zelda_color_map.get(displayName) + "" + ChatColor.BOLD + displayName);
-		
-		board.getTeam(displayName).addPlayer(player);
-		
-//		if (displayName.equalsIgnoreCase("GERUDO")) {
-//			objective.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + displayName);
-//			gerudo.addPlayer(player);
-//		}	
-//		else if (displayName.equalsIgnoreCase("RITO")) {
-//			objective.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + displayName);
-//			rito.addPlayer(player);
-//		}
-//		else if (displayName.equalsIgnoreCase("KOROK")) {
-//			objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + displayName);
-//			korok.addPlayer(player);
-//		}
-//		else if (displayName.equalsIgnoreCase("GORON")) {
-//			objective.setDisplayName(ChatColor.RED + "" + ChatColor.BOLD + displayName);
-//			goron.addPlayer(player);
-//		}
-//		else if (displayName.equalsIgnoreCase("ZORA")) {
-//			objective.setDisplayName(ChatColor.BLUE + "" + ChatColor.BOLD + displayName);
-//			zora.addPlayer(player);
-//		}
-//		else if (displayName.equalsIgnoreCase("NEUTRAL")) {
-//			objective.setDisplayName(ChatColor.WHITE + "" + ChatColor.BOLD + displayName);
-//			neutral.addPlayer(player);
-//		}
-		
-		
+		NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
+		for (Player p: Bukkit.getOnlinePlayers()) {
+			
+			String teamOfPlayer = p.getPersistentDataContainer().get(key, new TeamDataType()).toString();
+			if (teamOfPlayer.equalsIgnoreCase("GERUDO")) {
+				gerudo.addPlayer(p);
+				Bukkit.broadcastMessage(ChatColor.WHITE + teamOfPlayer);
+				objective.setDisplayName(cc.get(map.get(displayName.toUpperCase())) + "" + ChatColor.BOLD + displayName);
+			}	
+			else if (teamOfPlayer.equalsIgnoreCase("RITO")) {
+				rito.addPlayer(p);
+				p.sendMessage("R TIME");
+				objective.setDisplayName(cc.get(map.get(displayName.toUpperCase())) + "" + ChatColor.BOLD + displayName);
+			}
+			else if (teamOfPlayer.equalsIgnoreCase("KOROK")) {
+				korok.addPlayer(p);
+				objective.setDisplayName(cc.get(map.get(displayName.toUpperCase())) + "" + ChatColor.BOLD + displayName);
+			}
+			else if (teamOfPlayer.equalsIgnoreCase("GORON")) {
+				goron.addPlayer(p);
+				objective.setDisplayName(cc.get(map.get(displayName.toUpperCase())) + "" + ChatColor.BOLD + displayName);
+			}
+			else if (teamOfPlayer.equalsIgnoreCase("ZORA")) {
+				zora.addPlayer(p);
+				Bukkit.broadcastMessage(ChatColor.WHITE + teamOfPlayer);
+				objective.setDisplayName(cc.get(map.get(displayName.toUpperCase())) + "" + ChatColor.BOLD + displayName);
+			}
+			else if (teamOfPlayer.equalsIgnoreCase("NEUTRAL")) {
+				objective.setDisplayName(cc.get(map.get(displayName.toUpperCase())) + "" + ChatColor.BOLD + displayName);
+			}
+		}		
+		player.setScoreboard(f_board);
 	}
 }

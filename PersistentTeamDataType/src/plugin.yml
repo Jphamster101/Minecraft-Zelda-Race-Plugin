@@ -14,3 +14,4 @@ commands:
     usage: /<command>
   teams:
   squad:
+  sb:
