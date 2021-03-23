@@ -1,0 +1,18 @@
+main: me.Johnny.minecraftZeldaStuff.Main
+name: TeamPersistent
+version: 1.0
+author: Johnny
+
+commands:
+  test:
+    description: For testing purposes
+    usage: /<command>
+  assign:
+    description: Assigns players to available teams
+  whichteam:
+    description: Checks what team the player is currently on
+    usage: /<command>
+  teams:
+  squad:
+  sb:
+  heal:
