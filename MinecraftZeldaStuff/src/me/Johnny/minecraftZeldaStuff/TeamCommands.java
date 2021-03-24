@@ -18,6 +18,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -80,6 +82,7 @@ public class TeamCommands implements CommandExecutor {
 				//----------------------------------------------
 				
 				clearChestPlate(player);
+				clearPotionEffect(player);
 				
 				if (args.length > 0) {
 					// JOIN THE GERUDO TEAM
@@ -112,14 +115,22 @@ public class TeamCommands implements CommandExecutor {
 						return true;
 					}
 					// JOIN THE GORON TEAM
+					// Fire Resistance
+					// Water Breathing
 					else if (args[0].equalsIgnoreCase("goron")) {
 						teamAssignment(player, ChatColor.RED, TeamType.GORON);
+						player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 0, false, false));
+						player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, Integer.MAX_VALUE, 0, false, false));
+						
 						updateAllScoreboards();						
 						return true;
 					}
 					// JOIN THE ZORA TEAM
 					else if (args[0].equalsIgnoreCase("zora")) {
 						teamAssignment(player, ChatColor.BLUE, TeamType.ZORA);
+//						player.addPotionEffect(new PotionEffect(PotionEffectType.CONDUIT_POWER, Integer.MAX_VALUE, 0, false, false));
+//						player.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, Integer.MAX_VALUE, 0, false, false));
+//						player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, Integer.MAX_VALUE, 19, false, false));
 						updateAllScoreboards();						
 						return true;
 					}
@@ -144,15 +155,27 @@ public class TeamCommands implements CommandExecutor {
 				player.sendMessage(ChatColor.WHITE + "" + player.getScoreboard());
 			}
 			
+			List<String> tn = new ArrayList<String>();
+			tn.add("GERUDO");
+			tn.add("RITO");
+			tn.add("KOROK");
+			tn.add("GORON");
+			tn.add("ZORA");
+			tn.add("NEUTRAL");
 			
 			// Command that allows user to check what team they are on
 			if (label.equalsIgnoreCase("whichteam")) {
 				if (args.length == 0) {
-					PersistentDataContainer data = player.getPersistentDataContainer();
-					NamespacedKey keyValue = new NamespacedKey(Main.getPlugin(), "teamType");
-					String team = data.get(keyValue, new TeamDataType()).toString();
-					player.sendMessage(ChatColor.GRAY + "You are on the : " + cc.get(map.get(team)) + ChatColor.BOLD + data.get(keyValue, new TeamDataType()) + ChatColor.WHITE +" team!");
-					return true;
+					if (!tn.contains(player.getPersistentDataContainer().get(key, new TeamDataType()).toString())) {
+						Bukkit.broadcastMessage("Team Name does not exist");
+					}
+					else {
+						PersistentDataContainer data = player.getPersistentDataContainer();
+						NamespacedKey keyValue = new NamespacedKey(Main.getPlugin(), "teamType");
+						String team = data.get(keyValue, new TeamDataType()).toString();
+						player.sendMessage(ChatColor.GRAY + "You are on the : " + cc.get(map.get(team)) + ChatColor.BOLD + data.get(keyValue, new TeamDataType()) + ChatColor.WHITE +" team!");
+						return true;
+					}
 				}
 				else {
 					checkTeam(player, args[0]);
@@ -163,6 +186,13 @@ public class TeamCommands implements CommandExecutor {
 	}
 	
 	// Helper Functions
+	
+	public void clearPotionEffect(Player player) {
+		for (PotionEffect pe: player.getActivePotionEffects()) {
+			player.removePotionEffect(pe.getType());
+		}
+	}
+	
 	public void showTeams(HashMap<String, Integer> map, List<ChatColor> cc, Player player) {
 		for (String teamName: map.keySet()) {
 			TextComponent message = new TextComponent(teamName);
@@ -207,8 +237,8 @@ public class TeamCommands implements CommandExecutor {
 		zora.setPrefix(ChatColor.BLUE+ "[ZORA]" + ChatColor.WHITE);
 		neutral.setPrefix(ChatColor.WHITE+ "[NEUTRAL]" + ChatColor.WHITE);
 		
-		Score score = objective.getScore("Players:");
-		score.setScore(Bukkit.getOnlinePlayers().size());
+//		Score score = objective.getScore("Players:");
+//		score.setScore(Bukkit.getOnlinePlayers().size());
 		
 //		Bukkit.broadcastMessage(ChatColor.GOLD + "Score: " + Bukkit.getOnlinePlayers().size());
 		
