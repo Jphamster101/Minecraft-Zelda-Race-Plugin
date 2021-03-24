@@ -16,12 +16,18 @@ public class TabAutoComplete implements TabCompleter {
 		
 		if (args.length == 1) {
 			List<String> teamNames = new ArrayList<>();
-			teamNames.add(ChatColor.YELLOW + "GERUDO");
-			teamNames.add(ChatColor.AQUA + "RITO");
-			teamNames.add(ChatColor.GREEN+ "KOROK");
-			teamNames.add(ChatColor.RED + "GORON");
-			teamNames.add(ChatColor.BLUE + "ZORA");
-			teamNames.add(ChatColor.WHITE + "NEUTRAL");
+//			teamNames.add(ChatColor.YELLOW + "GERUDO");
+//			teamNames.add(ChatColor.AQUA + "RITO");
+//			teamNames.add(ChatColor.GREEN+ "KOROK");
+//			teamNames.add(ChatColor.RED + "GORON");
+//			teamNames.add(ChatColor.BLUE + "ZORA");
+//			teamNames.add(ChatColor.WHITE + "NEUTRAL");
+			teamNames.add("GERUDO");
+			teamNames.add("RITO");
+			teamNames.add("KOROK");
+			teamNames.add("GORON");
+			teamNames.add("ZORA");
+			teamNames.add("NEUTRAL");
 			
 			return teamNames;
 		}

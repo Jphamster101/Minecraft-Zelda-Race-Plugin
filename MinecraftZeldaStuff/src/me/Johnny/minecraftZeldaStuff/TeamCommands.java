@@ -47,11 +47,6 @@ public class TeamCommands implements CommandExecutor {
 			HashMap<String, Integer> map = hk.getTeamNameHashMap();
 			List<ChatColor> cc = hk.getChatColorList();
 			
-			// Test command for sanity purposes
-			if (label.equalsIgnoreCase("test")) {
-				player.sendMessage("Could you be the one?");
-			}
-			
 			// Feature that allows for users to hover/click on the team they would like to join
 			if (label.equalsIgnoreCase("teams")) {
 				player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Select a Team Shown Below:");
@@ -75,23 +70,23 @@ public class TeamCommands implements CommandExecutor {
 				player.setHealth(player.getMaxHealth());
 			}
 			
-			
 			// Team assignment code
 			if (label.equalsIgnoreCase("assign")) {
 				
 				//----------------------------------------------
 				
+				//Transitioning code
 				clearChestPlate(player);
 				clearPotionEffect(player);
 				
 				if (args.length > 0) {
-					// JOIN THE GERUDO TEAM
+					// JOIN THE GERUDO TEAM [DESERT]
 					if (args[0].equalsIgnoreCase("gerudo")) {
 						teamAssignment(player, ChatColor.YELLOW, TeamType.GERUDO);
 						updateAllScoreboards();						
 						return true;
 					}
-					// JOIN THE RITO TEAM
+					// JOIN THE RITO TEAM [BIRD]
 					else if (args[0].equalsIgnoreCase("rito")) {
 						teamAssignment(player, ChatColor.AQUA, TeamType.RITO);
 						Bukkit.broadcastMessage(ChatColor.GREEN + "[Server]" + ChatColor.GOLD + "YOU SWITCHED TEAMS!");
@@ -103,18 +98,21 @@ public class TeamCommands implements CommandExecutor {
 						elytra.setItemMeta(meta);
 						player.getInventory().setChestplate(elytra);
 						player.sendMessage("WINGS GIVEN!");
-	
+						
+						//Watch for rain
+						new Events().watchingForRain(player);
+						
 						updateAllScoreboards();
 						
 						return true;
 					}
-					// JOIN THE KOROK TEAM
+					// JOIN THE KOROK TEAM [PLANT]
 					else if (args[0].equalsIgnoreCase("korok")) {
 						teamAssignment(player, ChatColor.GREEN, TeamType.KOROK);
 						updateAllScoreboards();
 						return true;
 					}
-					// JOIN THE GORON TEAM
+					// JOIN THE GORON TEAM [ROCK]
 					// Fire Resistance
 					// Water Breathing
 					else if (args[0].equalsIgnoreCase("goron")) {
@@ -125,7 +123,7 @@ public class TeamCommands implements CommandExecutor {
 						updateAllScoreboards();						
 						return true;
 					}
-					// JOIN THE ZORA TEAM
+					// JOIN THE ZORA TEAM [WATER]
 					else if (args[0].equalsIgnoreCase("zora")) {
 						teamAssignment(player, ChatColor.BLUE, TeamType.ZORA);
 //						player.addPotionEffect(new PotionEffect(PotionEffectType.CONDUIT_POWER, Integer.MAX_VALUE, 0, false, false));

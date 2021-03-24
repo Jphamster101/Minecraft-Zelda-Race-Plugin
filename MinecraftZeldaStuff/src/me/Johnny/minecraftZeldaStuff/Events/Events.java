@@ -5,12 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+
 //import org.bukkit.ChatColor;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Sound;
-import org.bukkit.WeatherType;
+import org.bukkit.World;
+import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -20,22 +22,24 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
 import me.Johnny.minecraftZeldaStuff.Housekeeping;
 import me.Johnny.minecraftZeldaStuff.Main;
+import me.Johnny.minecraftZeldaStuff.RainCheck;
 import me.Johnny.minecraftZeldaStuff.TeamCommands;
 import me.Johnny.minecraftZeldaStuff.TeamDataType;
 import me.Johnny.minecraftZeldaStuff.Models.TeamType;
@@ -46,6 +50,8 @@ public class Events implements Listener {
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
+		
+		watchingForRain(player);
 		
 		List<String> tn = new ArrayList<String>();
 		tn.add("GERUDO");
@@ -63,20 +69,14 @@ public class Events implements Listener {
 	
 		NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
 		
-//		String initPlayerteam = player.getPersistentDataContainer().get(key, new TeamDataType()).toString();
-		
-		//Welcome message
-//		player.sendMessage("Welcome " + cc.get(map.get(initPlayerteam)) + ChatColor.BOLD + player.getDisplayName() + "!");
-		
 		// When player joins for the 1st time, the "team" that they default to is neutral
 		if (!player.getPersistentDataContainer().has(key, new TeamDataType())) {
 			Bukkit.broadcastMessage("initPlayerteam:");
 			player.getPersistentDataContainer().set(key, new TeamDataType(), TeamType.NEUTRAL);
-//			player.sendMessage(ChatColor.BOLD + "Welcome " + player.getDisplayName() + "!");
 			player.sendMessage(ChatColor.BOLD + "You are currently not on a team. But you can join one of the teams below:");
-			String initPlayerteam = player.getPersistentDataContainer().get(key, new TeamDataType()).toString();
 			
 			//Welcome message
+			String initPlayerteam = player.getPersistentDataContainer().get(key, new TeamDataType()).toString();
 			player.sendMessage("Welcome " + cc.get(map.get(initPlayerteam)) + ChatColor.BOLD + player.getDisplayName() + "!");
 			new TeamCommands().showTeams(map, cc, player);
 		}
@@ -91,17 +91,15 @@ public class Events implements Listener {
 		
 		
 		else {
-			String initPlayerteam = player.getPersistentDataContainer().get(key, new TeamDataType()).toString();
-			
 			//Welcome message
+			String initPlayerteam = player.getPersistentDataContainer().get(key, new TeamDataType()).toString();
 			player.sendMessage("Welcome " + cc.get(map.get(initPlayerteam)) + ChatColor.BOLD + player.getDisplayName() + "!");
 		}
 		
 		if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.GORON)) {
 			player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 0, false, false));
 			player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, Integer.MAX_VALUE, 0, false, false));
-		}
-		
+		}	
 		
 		/* How this team assignment code works
 		 * Get the player's persistence data container for 'teamType'
@@ -120,8 +118,43 @@ public class Events implements Listener {
 		}
 	}
 	
-//	@EventHandler
-//	public void onPlayerQuit(PlayerQuitEvent event) {
+	public void watchingForRain(Player player) {
+		BukkitTask i = new BukkitRunnable() {
+			@Override
+			public void run() {
+				NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
+				if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.RITO)) {
+					rainDetection();
+				}
+				else {
+					Bukkit.broadcastMessage("Stopped watching for rain due to team change");
+					this.cancel();
+				}
+			}
+		}.runTaskTimerAsynchronously(Main.getPlugin(), 0, 5);
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void rainDetection() {
+	    for (Player p : Bukkit.getOnlinePlayers()) {
+	      if (p.getWorld().hasStorm()) {
+	        World w = p.getWorld();
+	        Biome b = w.getBiome(p.getLocation().getBlockX(), p.getLocation().getBlockZ());
+	        int highest = w.getHighestBlockYAt(p.getLocation().getBlockX(), p.getLocation().getBlockZ());
+	        if (RainCheck.doesBiomePrecipitate(b) && p.getLocation().getBlockY() >= highest) {
+	        	Bukkit.broadcastMessage("Rain Rain...");
+	        }
+	        else {
+	        	Bukkit.broadcastMessage("Lovely day...");
+	        }
+	      } 
+	    } 
+	  }
+	
+
+// FOR TESTING PURPOSES
+	@EventHandler
+	public void onPlayerQuit(PlayerQuitEvent event) {
 //		NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
 //		Bukkit.getScheduler().runTaskLater(Main.getPlugin(), task -> {
 //			
@@ -144,7 +177,7 @@ public class Events implements Listener {
 //				createScoreboard(dude, teamOfPlayer);
 //			}
 //		}, 20L);
-//	}
+	}
 	
 	
 	
@@ -244,15 +277,13 @@ public class Events implements Listener {
 		else if (teamColor.equals("RITO")) {
 	    	if (player.isInWater()) {
 	    		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 400, 2, false, false));
-	    	}
-	    	
-	    	
+	    	}   	
 	    	
 //	    	if (player.getPlayerWeather().equals(WeatherType.DOWNFALL)) {
 //	    		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 400, 2, false, false));
 //	    	}
 	    	
-	        // player is under water
+	        // Executes if player had contact with water
 	    	if (player.hasPotionEffect(PotionEffectType.SLOW)) {
 				clearChestPlate(player);
 				
@@ -262,8 +293,6 @@ public class Events implements Listener {
 				meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
 				meta.setUnbreakable(true);
 				elytra.setItemMeta(meta);
-//				player.getInventory().setChestplate(elytra);
-//				player.sendMessage("WINGS GIVEN!");
 				
 				Bukkit.getScheduler().runTaskLater(Main.getPlugin(), task -> {
 					player.getInventory().setChestplate(elytra);
@@ -309,10 +338,11 @@ public class Events implements Listener {
 		zora.setPrefix(ChatColor.BLUE+ "[ZORA]" + ChatColor.WHITE);
 		neutral.setPrefix(ChatColor.WHITE+ "[NEUTRAL]" + ChatColor.WHITE);
 		
+		
+		// TO RE-IMPLEMENT SCOREBOARD FEATURE, UNCOMMENT THE 2 LINES OF CODE BELOW
+		// SAME CHANGE NEEDS TO BE MADE IN THE TEAMCOMMANDS.JAVA createScoreboard FUNCTION
 //		Score score = objective.getScore("Players:");
 //		score.setScore(Bukkit.getOnlinePlayers().size());
-		
-//		Bukkit.broadcastMessage(ChatColor.GOLD + "Score: " + Bukkit.getOnlinePlayers().size());
 		
 //		Initialization and housekeeping stuff
 		Housekeeping hk = new Housekeeping();
