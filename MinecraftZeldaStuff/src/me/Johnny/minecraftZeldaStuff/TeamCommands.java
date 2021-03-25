@@ -73,8 +73,6 @@ public class TeamCommands implements CommandExecutor {
 			// Team assignment code
 			if (label.equalsIgnoreCase("assign")) {
 				
-				//----------------------------------------------
-				
 				//Transitioning code
 				clearChestPlate(player);
 				clearPotionEffect(player);
@@ -183,7 +181,7 @@ public class TeamCommands implements CommandExecutor {
 		return false;
 	}
 	
-	// Helper Functions
+	// -----------------------------------------------------------------Helper Functions--------------------------------------------------------------------
 	
 	public void clearPotionEffect(Player player) {
 		for (PotionEffect pe: player.getActivePotionEffects()) {

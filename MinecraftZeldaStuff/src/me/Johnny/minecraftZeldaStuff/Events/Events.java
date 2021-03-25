@@ -88,8 +88,6 @@ public class Events implements Listener {
 		else if (player.getPersistentDataContainer().get(key, new TeamDataType()).toString().equals(null)) {
 			player.getPersistentDataContainer().set(key, new TeamDataType(), TeamType.NEUTRAL);
 		}
-		
-		
 		else {
 			//Welcome message
 			String initPlayerteam = player.getPersistentDataContainer().get(key, new TeamDataType()).toString();
@@ -101,13 +99,6 @@ public class Events implements Listener {
 			player.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, Integer.MAX_VALUE, 0, false, false));
 		}	
 		
-		/* How this team assignment code works
-		 * Get the player's persistence data container for 'teamType'
-		 * If it is of a certain type, them change their skin accordingly
-		 * Go through all players and generate a scoreboard that
-		 * reflects their team type => createScoreboard(Player player, String team)
-		 * */
-		
 		//Take into account all players and put them into their respective teams using the board variable	
 		// At this point board should have all the teams and members in their respective teams
 		
@@ -117,69 +108,6 @@ public class Events implements Listener {
 			createScoreboard(dude, teamOfPlayer);
 		}
 	}
-	
-	public void watchingForRain(Player player) {
-		BukkitTask i = new BukkitRunnable() {
-			@Override
-			public void run() {
-				NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
-				if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.RITO)) {
-					rainDetection();
-				}
-				else {
-					Bukkit.broadcastMessage("Stopped watching for rain due to team change");
-					this.cancel();
-				}
-			}
-		}.runTaskTimerAsynchronously(Main.getPlugin(), 0, 5);
-	}
-	
-	@SuppressWarnings("deprecation")
-	public void rainDetection() {
-	    for (Player p : Bukkit.getOnlinePlayers()) {
-	      if (p.getWorld().hasStorm()) {
-	        World w = p.getWorld();
-	        Biome b = w.getBiome(p.getLocation().getBlockX(), p.getLocation().getBlockZ());
-	        int highest = w.getHighestBlockYAt(p.getLocation().getBlockX(), p.getLocation().getBlockZ());
-	        if (RainCheck.doesBiomePrecipitate(b) && p.getLocation().getBlockY() >= highest) {
-	        	Bukkit.broadcastMessage("Rain Rain...");
-	        }
-	        else {
-	        	Bukkit.broadcastMessage("Lovely day...");
-	        }
-	      } 
-	    } 
-	  }
-	
-
-// FOR TESTING PURPOSES
-	@EventHandler
-	public void onPlayerQuit(PlayerQuitEvent event) {
-//		NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
-//		Bukkit.getScheduler().runTaskLater(Main.getPlugin(), task -> {
-//			
-//			int numOfPlayers = Bukkit.getOnlinePlayers().size();
-//			
-//			if (numOfPlayers == 0) {
-//				Bukkit.broadcastMessage(ChatColor.WHITE + "And then there was no one");
-//			} 
-//			
-//			if (numOfPlayers == 1) {
-//				Bukkit.broadcastMessage(ChatColor.WHITE + "And then there was " + numOfPlayers + "...");
-//			}
-//			
-//			else {
-//				Bukkit.broadcastMessage(ChatColor.WHITE + "And then there were " + numOfPlayers + "...");
-//			}
-//			
-//			for (Player dude: Bukkit.getOnlinePlayers()) {
-//				String teamOfPlayer = dude.getPersistentDataContainer().get(key, new TeamDataType()).toString();
-//				createScoreboard(dude, teamOfPlayer);
-//			}
-//		}, 20L);
-	}
-	
-	
 	
 	/*---------------------- Gerudo ---------------------------*/
 	
@@ -197,36 +125,13 @@ public class Events implements Listener {
 					try {
 						p.getInventory().getChestplate().equals(new ItemStack(Material.ELYTRA));
 					} catch (Exception e) {
-						ItemStack elytra= new ItemStack(Material.ELYTRA);
-						ItemMeta meta = elytra.getItemMeta();
-						meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
-						meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
-						elytra.setItemMeta(meta);
-						p.getInventory().setChestplate(elytra);
+						giveElytra(p);
 					}
 				}
 			}
 		}, 20L);
 
 	}
-	
-//	@EventHandler
-//	public void onPlayerFlight(PlayerVelocityEvent event) {
-//		Player player = (Player) event.getPlayer();
-//		if (player.hasPotionEffect(PotionEffectType.SLOW)) {
-//			clearChestPlate(player);
-//			ItemStack elytra= new ItemStack(Material.ELYTRA);
-//			ItemMeta meta = elytra.getItemMeta();
-//			meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
-//			meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
-//			meta.setUnbreakable(true);
-//			elytra.setItemMeta(meta);
-//			player.getInventory().setChestplate(elytra);
-//			player.sendMessage("WINGS GIVEN!");
-//			Bukkit.broadcastMessage("NO FLYING...");
-//		}
-//	}
-	
 	
 	/*---------------------- Korok ---------------------------*/
 	// Abilities: Invisibility and not collidable when crouching
@@ -276,28 +181,9 @@ public class Events implements Listener {
 		
 		else if (teamColor.equals("RITO")) {
 	    	if (player.isInWater()) {
-	    		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 400, 2, false, false));
+	    		makeSlow(player);
+		    	clipWings(player);
 	    	}   	
-	    	
-//	    	if (player.getPlayerWeather().equals(WeatherType.DOWNFALL)) {
-//	    		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 400, 2, false, false));
-//	    	}
-	    	
-	        // Executes if player had contact with water
-	    	if (player.hasPotionEffect(PotionEffectType.SLOW)) {
-				clearChestPlate(player);
-				
-				ItemStack elytra= new ItemStack(Material.ELYTRA);
-				ItemMeta meta = elytra.getItemMeta();
-				meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
-				meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
-				meta.setUnbreakable(true);
-				elytra.setItemMeta(meta);
-				
-				Bukkit.getScheduler().runTaskLater(Main.getPlugin(), task -> {
-					player.getInventory().setChestplate(elytra);
-				}, 400L);
-			}
 		}
 	}
 	
@@ -305,11 +191,76 @@ public class Events implements Listener {
 	
 	
 	
-	// HELPER FUNCTIONS
+	// -----------------------------------------------------------------Helper Functions--------------------------------------------------------------------
 	
 	public void clearChestPlate(Player player) {
 		ItemStack nothing = new ItemStack(Material.AIR);
 		player.getInventory().setChestplate(nothing);
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void rainDetection() {
+	    for (Player p : Bukkit.getOnlinePlayers()) {
+	      if (p.getWorld().hasStorm()) {
+	        World w = p.getWorld();
+	        Biome b = w.getBiome(p.getLocation().getBlockX(), p.getLocation().getBlockZ());
+	        int highest = w.getHighestBlockYAt(p.getLocation().getBlockX(), p.getLocation().getBlockZ());
+	        if (RainCheck.doesBiomePrecipitate(b) && p.getLocation().getBlockY() >= highest) {
+	        	Bukkit.broadcastMessage("Rain Rain...");
+	        	makeSlow(p);
+		    	clipWings(p);
+	        }
+	        else {
+	        	Bukkit.broadcastMessage("Lovely day...");
+	        }
+	      } 
+	    } 
+	  }
+	
+	public void watchingForRain(Player player) {
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
+				if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.RITO)) {
+					rainDetection();
+				}
+				else {
+					Bukkit.broadcastMessage("Stopped watching for rain due to team change");
+					this.cancel();
+				}
+			}
+		}.runTaskTimer(Main.getPlugin(), 0, 5);
+	}
+	
+	public void giveElytra(Player p) {
+		ItemStack elytra= new ItemStack(Material.ELYTRA);
+		ItemMeta meta = elytra.getItemMeta();
+		meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+		meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
+		elytra.setItemMeta(meta);
+		p.getInventory().setChestplate(elytra);
+	}
+	
+	public void makeSlow(Player p) {
+		p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 400, 2, false, false));
+	}
+	
+	public void clipWings(Player p) {
+		if (p.hasPotionEffect(PotionEffectType.SLOW)) {
+			clearChestPlate(p);
+			
+			ItemStack elytra= new ItemStack(Material.ELYTRA);
+			ItemMeta meta = elytra.getItemMeta();
+			meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+			meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
+			meta.setUnbreakable(true);
+			elytra.setItemMeta(meta);
+			
+			Bukkit.getScheduler().runTaskLater(Main.getPlugin(), task -> {
+				p.getInventory().setChestplate(elytra);
+			}, 400L);
+		}
 	}
 	
 	@SuppressWarnings("deprecation")
