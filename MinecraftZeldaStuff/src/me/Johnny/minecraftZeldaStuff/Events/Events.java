@@ -2,22 +2,31 @@ package me.Johnny.minecraftZeldaStuff.Events;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 
 //import org.bukkit.ChatColor;
 import net.md_5.bungee.api.ChatColor;
+import net.minecraft.server.v1_16_R3.Chunk;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_16_R3.CraftChunkSnapshot;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityExhaustionEvent;
+import org.bukkit.event.entity.EntityToggleSwimEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -36,6 +45,7 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Vector;
 
 import me.Johnny.minecraftZeldaStuff.Housekeeping;
 import me.Johnny.minecraftZeldaStuff.Main;
@@ -51,7 +61,7 @@ public class Events implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
 		
-		watchingForRain(player);
+		constantlyRunning(player);
 		
 		List<String> tn = new ArrayList<String>();
 		tn.add("GERUDO");
@@ -111,7 +121,31 @@ public class Events implements Listener {
 	
 	/*---------------------- Gerudo ---------------------------*/
 	
+	boolean check;
 	
+	@EventHandler
+	public void onExhaustion(FoodLevelChangeEvent e) {
+		Player player = (Player) e.getEntity();
+		NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
+	    String teamColor = player.getPersistentDataContainer().get(key, new TeamDataType()).toString();
+		
+		if (teamColor.equals("GERUDO")) {
+			float prev_food_level = player.getFoodLevel();
+			
+			Bukkit.getScheduler().runTaskLater(Main.getPlugin(), task -> {
+				if (prev_food_level > player.getFoodLevel()) {
+					if (check == true) {
+						player.setFoodLevel(player.getFoodLevel() + 1);
+						check = false;
+					}
+					else {
+						check = true;
+					}
+				}
+			}, 5L);
+		}
+		
+	}
 	
 	/*----------------------- Rito --------------------------*/
 	
@@ -127,6 +161,9 @@ public class Events implements Listener {
 					} catch (Exception e) {
 						giveElytra(p);
 					}
+				}
+				else if (teamColor.equals("ZORA")) {						
+					p.setRemainingAir(280);
 				}
 			}
 		}, 20L);
@@ -150,7 +187,84 @@ public class Events implements Listener {
 	
 	/*----------------------- Goron --------------------------*/
 	
+	public void constantlyRunning(Player player) {
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
+				if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.ZORA)) {
+					if (player.isInWater()) {
+						player.setRemainingAir(300);
+					}
+					else {
+						player.setRemainingAir(player.getRemainingAir() - 21);
+						if (player.getRemainingAir() <= 0) {
+							player.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 20, 1, false, false));
+						}
+					}
+				}
+				
+				
+//				if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.GORON)) {
+////					inWaterDetection();
+//				}
+//				else if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.RITO)) {
+//					rainDetection();
+//				}
+//				else {
+//					Bukkit.broadcastMessage("Stopped watching for rain due to team change");
+//					this.cancel();
+//				}
+//				if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.GORON) && player.isInWater()) {
+//					player.setVelocity(player.getLocation().getDirection().setY(-0.01));
+//					Bukkit.broadcastMessage("watering...");
+//					if (player.isSwimming()) {
+//						Bukkit.broadcastMessage("swimming...");
+//						player.setSwimming(false);
+//					}
+//				}
+//				else {
+//					Bukkit.broadcastMessage("Stopped watching for liquids due to team change");
+//					this.cancel();
+//				}
+			}
+		}.runTaskTimer(Main.getPlugin(), 0, 5);
+	}
 	
+//	@EventHandler
+//	public void onPlayerSwim(EntityToggleSwimEvent e) {
+//		Bukkit.broadcastMessage("ON PLAYER SWIM EVENT...");
+//		Player player = (Player) e.getEntity();
+//		NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
+//		if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.GORON)) {
+//			if (player.isSwimming()) {
+//				Bukkit.broadcastMessage("swimming...");
+//				player.setSwimming(false);
+//			}
+//		}
+//	}
+	
+	
+//	public void inWaterDetection() {
+//		Bukkit.broadcastMessage("Running inWaterDetection func");
+//	    for (Player p : Bukkit.getOnlinePlayers()) {
+//	      if (p.isInWater()) {
+//	    	 Bukkit.broadcastMessage(p.getDisplayName() + " is in water!");
+////	    	 p.setVelocity(p.getLocation().setY(-0.5));
+//	    	 Vector v = new Vector();
+//	    	 
+//	    	 
+//	    	 p.setVelocity(v.add(p.getVelocity().setY(-0.01)));
+//			 if (p.isSwimming()) {
+//				 Bukkit.broadcastMessage("swimming...");
+//				 p.setSwimming(false);
+//			 }
+//	      }
+//	      else {
+//	    	  Bukkit.broadcastMessage("NO H2O");
+//	      }
+//	    } 
+//	  }
 	
 	/*----------------------- Zora ---------------------------*/
 	
@@ -172,8 +286,8 @@ public class Events implements Listener {
 		    		player.removePotionEffect(PotionEffectType.CONDUIT_POWER);
 		    		player.removePotionEffect(PotionEffectType.DOLPHINS_GRACE);
 		    		player.removePotionEffect(PotionEffectType.FAST_DIGGING);
+		    		
 		    	}
-		        // player is under water
 		    }
 		}
 		
@@ -185,6 +299,28 @@ public class Events implements Listener {
 		    	clipWings(player);
 	    	}   	
 		}
+//		getBiomeTemp(player);
+		
+		/*--- Gerudo---*/
+		
+		else if (teamColor.equals("GERUDO")) {
+			player.setWalkSpeed((float) 0.3);
+		}
+		
+		/*--- Goron --- */
+	
+		else if (teamColor.equals("GORON")) {
+			if (player.isInWater()) {
+				if (e.getFrom().getY() < e.getTo().getY()) {
+					Vector v = new Vector();
+					player.setVelocity(v.multiply(player.getVelocity().setY(-1)));
+		    	 }
+				if (player.isSwimming()) {
+					player.setSprinting(false);
+					player.setSwimming(false);
+				}
+			}
+		}
 	}
 	
 	/*----------------------- Neutral --------------------------*/
@@ -192,6 +328,26 @@ public class Events implements Listener {
 	
 	
 	// -----------------------------------------------------------------Helper Functions--------------------------------------------------------------------
+	
+//	SAVING FOR THE NEXT UPDATE
+//	public double getBiomeTemp(Player player) {
+//		
+//		World world = Bukkit.getWorld("world");
+//		Location loc = new Location(world, player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ());
+//		ChunkSnapshot c = loc.getChunk().getChunkSnapshot(true, true, true);
+//		
+//		
+//		int playerChunkX = (int) (Math.floorMod((int) player.getLocation().getBlockX(), 16));
+//		int playerChunkY = (int) (Math.floorMod((int) player.getLocation().getBlockY(), 16));
+//		int playerChunkZ = (int) (Math.floorMod((int) player.getLocation().getBlockZ(), 16));
+//		
+//		
+//		
+//		double biomeTemp = c.getRawBiomeTemperature(playerChunkX, playerChunkY, playerChunkZ);
+//		player.sendMessage("Biome Temp: " + "" + biomeTemp);
+//		return 21;
+//	}
+	
 	
 	public void clearChestPlate(Player player) {
 		ItemStack nothing = new ItemStack(Material.AIR);
@@ -206,38 +362,35 @@ public class Events implements Listener {
 	        Biome b = w.getBiome(p.getLocation().getBlockX(), p.getLocation().getBlockZ());
 	        int highest = w.getHighestBlockYAt(p.getLocation().getBlockX(), p.getLocation().getBlockZ());
 	        if (RainCheck.doesBiomePrecipitate(b) && p.getLocation().getBlockY() >= highest) {
-	        	Bukkit.broadcastMessage("Rain Rain...");
 	        	makeSlow(p);
 		    	clipWings(p);
-	        }
-	        else {
-	        	Bukkit.broadcastMessage("Lovely day...");
 	        }
 	      } 
 	    } 
 	  }
 	
-	public void watchingForRain(Player player) {
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
-				if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.RITO)) {
-					rainDetection();
-				}
-				else {
-					Bukkit.broadcastMessage("Stopped watching for rain due to team change");
-					this.cancel();
-				}
-			}
-		}.runTaskTimer(Main.getPlugin(), 0, 5);
-	}
+//	public void watchingForRain(Player player) {
+//		new BukkitRunnable() {
+//			@Override
+//			public void run() {
+//				NamespacedKey key = new NamespacedKey(Main.getPlugin(Main.class), "teamType");
+//				if (player.getPersistentDataContainer().get(key, new TeamDataType()).equals(TeamType.RITO)) {
+//					rainDetection();
+//				}
+//				else {
+//					Bukkit.broadcastMessage("Stopped watching for rain due to team change");
+//					this.cancel();
+//				}
+//			}
+//		}.runTaskTimer(Main.getPlugin(), 0, 5);
+//	}
 	
 	public void giveElytra(Player p) {
 		ItemStack elytra= new ItemStack(Material.ELYTRA);
 		ItemMeta meta = elytra.getItemMeta();
 		meta.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
 		meta.addEnchant(Enchantment.BINDING_CURSE, 1, true);
+		meta.setUnbreakable(true);
 		elytra.setItemMeta(meta);
 		p.getInventory().setChestplate(elytra);
 	}

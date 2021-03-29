@@ -30,6 +30,7 @@ public class Main extends JavaPlugin {
 		getCommand("squad").setExecutor(tc);
 		getCommand("sb").setExecutor(tc);
 		getCommand("heal").setExecutor(tc);
+		getCommand("eat").setExecutor(tc);
 	}
 	
 	@Override

@@ -10,6 +10,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -70,17 +71,24 @@ public class TeamCommands implements CommandExecutor {
 				player.setHealth(player.getMaxHealth());
 			}
 			
+			if (label.equalsIgnoreCase("eat")) {
+				player.setFoodLevel(20);
+			}
+			
 			// Team assignment code
 			if (label.equalsIgnoreCase("assign")) {
 				
 				//Transitioning code
 				clearChestPlate(player);
 				clearPotionEffect(player);
+				player.setWalkSpeed((float) 0.2);
 				
 				if (args.length > 0) {
 					// JOIN THE GERUDO TEAM [DESERT]
 					if (args[0].equalsIgnoreCase("gerudo")) {
 						teamAssignment(player, ChatColor.YELLOW, TeamType.GERUDO);
+						Bukkit.broadcastMessage(player.getName());
+						player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, Integer.MAX_VALUE, 0, false, false));
 						updateAllScoreboards();						
 						return true;
 					}
@@ -97,8 +105,8 @@ public class TeamCommands implements CommandExecutor {
 						player.getInventory().setChestplate(elytra);
 						player.sendMessage("WINGS GIVEN!");
 						
-						//Watch for rain
-						new Events().watchingForRain(player);
+//						Watch for rain
+						new Events().constantlyRunning(player);
 						
 						updateAllScoreboards();
 						
@@ -127,7 +135,9 @@ public class TeamCommands implements CommandExecutor {
 //						player.addPotionEffect(new PotionEffect(PotionEffectType.CONDUIT_POWER, Integer.MAX_VALUE, 0, false, false));
 //						player.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, Integer.MAX_VALUE, 0, false, false));
 //						player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, Integer.MAX_VALUE, 19, false, false));
-						updateAllScoreboards();						
+						updateAllScoreboards();
+						
+						
 						return true;
 					}
 					// JOIN THE NEUTRAL TEAM
